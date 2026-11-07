@@ -4,9 +4,9 @@ display_name = "Codex"
 [skill]
 supported = true
 build_path = "skills/{skill_name}"
-install_root_env = "CODEX_HOME"
-install_root_default = "~/.codex"
-install_path_suffix = "skills/{skill_name}"
+install_root_env = "CODEX_SKILLS_DIR"
+install_root_default = "~/.agents/skills"
+install_path_suffix = "{skill_name}"
 
 [mcp]
 supported = true

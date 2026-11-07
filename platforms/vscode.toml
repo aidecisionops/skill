@@ -2,7 +2,11 @@ id = "vscode"
 display_name = "VS Code"
 
 [skill]
-supported = false
+supported = true
+build_path = "skills/{skill_name}"
+install_root_env = "VSCODE_SKILLS_DIR"
+install_root_default = "~/.copilot/skills"
+install_path_suffix = "{skill_name}"
 
 [mcp]
 supported = true

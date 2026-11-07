@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: "Requires repository-local files and network access to the Decision Ops MCP service at https://api.aidecisionops.com/mcp. MCP authentication requires interactive browser OAuth (authorization code + PKCE) — there is no API key or token-based alternative for IDE users. The MCP server must be manually enabled in the IDE settings before first use."
 metadata:
   maturity: "stable"
-  prompt_version: "2.2.0"
+  prompt_version: "2.3.0"
 ---
 
 # Decision Ops
@@ -25,11 +25,12 @@ This skill teaches AI coding agents when and how to analyze and log decisions. T
 
 For IDE-driven usage, prefer a repository-local manifest at `.decisionops/manifest.toml`.
 
-- Read it first when present by running `scripts/read-manifest.sh <repo-path>` from the installed skill directory.
+- Read it first as TOML. On Unix, `scripts/read-manifest.sh <repo-path>` reads CLI-generated manifests; on other systems use the agent's file tools. Stop on malformed or conflicting bindings rather than guessing IDs.
 - Required fields: `org_id`, `project_id`, `repo_ref`.
 - Recommended fields: `default_branch`, `mcp_server_name`, `mcp_server_url`, `repo_id` (optional local hint).
 - Treat the manifest as local binding/config only. The MCP service remains the canonical system of record.
-- If the manifest and central gate resolve to different org/project/repo values, stop and ask the user which context is correct before writing anything.
+- Stop before writes if the authenticated organization or repository differs from the manifest. A returned project difference requires confirmation unless it is the result of the user-approved project creation or a stale Default Project binding resolved to the repository's existing mapped project. Follow [project binding rules](references/decision-ops-manifest.md) and preserve unrelated manifest settings when updating it.
+- For installation, agent discovery, and the initial project-selection flow, read [Onboarding and Project Setup](references/onboarding-and-projects.md).
 
 ## Workflow
 
@@ -52,17 +53,17 @@ Use this workflow only when the task includes an explicit, non-trivial product, 
   - `risk_level`: `"low"` | `"medium"` | `"high"` — based on blast radius, reversibility, and stakeholder impact.
   - `suggested_mode`: `"quick"` for low/medium-risk single-domain decisions or bounded experiments, `"comprehensive"` for high-risk, security/compliance, data-model, or cross-domain tradeoffs.
   - `signal_types`: Which domains this touches — `["technical"]`, `["product", "business"]`, etc.
-- Call `decision-ops:do-prepare-decision-gate` with `client_hints` included (where `decision-ops` is the MCP server name from the manifest's `mcp_server_name`, defaulting to `decision-ops`).
-- If central repository resolution fails but the manifest contains `org_id` and `project_id`, continue in manifest-bound mode and say so explicitly.
+- Call `decision-ops:do-prepare-decision-gate` with `client_hints` included (where `decision-ops` is the MCP server name from the manifest's `mcp_server_name`, defaulting to `decision-ops-mcp`).
+- First call the gate with `create_project_if_missing: false`. If central repository resolution fails, a valid manifest can support project-scoped lookup; state that repository mapping was not verified. Do not bypass authorization errors or silently create a project.
 - **Project selection & on-demand creation (ONLY when unmapped; MUST be clickable options)**:
   - **Only ask about project creation when `project_resolution` is `"fallback_default"`** (meaning no dedicated project is mapped yet). When `project_resolution` is `"mapped_repo"`, `"explicit_project"`, or `"created_project"`, **do NOT ask to create a project** — only ask the mode choice (`Quick | Comprehensive | Skip`).
-  - Whenever `do-prepare-decision-gate` returns a resolved `project_id` with `project_resolution: "mapped_repo"` or `"created_project"`, if `.decisionops/manifest.toml` is missing or its `project_id` differs (e.g. still `:default`), **automatically write/update `.decisionops/manifest.toml`** with the resolved `org_id`, `project_id`, and `repo_ref`.
+  - Whenever `do-prepare-decision-gate` returns a resolved `project_id` with `project_resolution: "mapped_repo"` or `"created_project"`, if `.decisionops/manifest.toml` is missing or its `project_id` differs (e.g. still `:default`), **update the binding only under the mismatch rules above**, using the returned `org_id`, `project_id`, and `repo`; retain `version`, branch, MCP server settings, and unrelated fields. A non-default existing project mismatch needs the user's choice.
   - When `do-prepare-decision-gate` returns `project_resolution: "fallback_default"` and `suggested_new_project`, make creating the new project a first-class clickable choice in your question UI (`request_user_input` / `AskUserQuestion` / `ask_question`):
     - **If the question tool supports multiple questions in `questions[]`**: pass **2 questions** in the same dialog:
       1. **Question 1 (Decision Logging Mode)**: `<Suggested Mode> (Recommended)`, `<Alternate Mode>`, `Skip decision logging`.
       2. **Question 2 (Target Project)**: `Create new project: <suggested_new_project.name> (Recommended)`, `Default Project (<org_id>:default)`, plus any other non-default projects from `available_projects`.
     - **If using a single-question card**: include explicit clickable options for creating the new project directly in the button list (for example: `1. <Suggested Mode> — Create <suggested_new_project.name> project (Recommended)`, `2. <Suggested Mode> — Default Project`, `3. <Alternate Mode> — Create <suggested_new_project.name> project`, `4. Skip decision logging`).
-  - When the user selects **Create `<suggested_new_project.name>` project**, re-run `do-prepare-decision-gate` (or call `do-create-decision-draft`) with `create_project_if_missing: true` and `project_name: "<suggested_new_project.name>"`, then write/update `.decisionops/manifest.toml`.
+  - When the user selects **Create `<suggested_new_project.name>` project**, re-run `do-prepare-decision-gate` with `create_project_if_missing: true` and `project_name: "<suggested_new_project.name>"`, then verify `created_project` or `mapped_repo` and persist the actual returned project ID. Creation requires an OAuth grant with `mcp:write`; a read-only grant must not create or attach projects. Never substitute an invented ID or create a decision draft merely to provision a project.
 - **Always** show one user prompt with resolved `org/project/repo/branch`, the classification reason, clickable project target options (when unmapped), and the mode choices `Quick`, `Comprehensive`, `Skip`, or `Other`.
 
 2. Gather evidence for the selected mode.
@@ -99,6 +100,7 @@ Use this workflow only when the task includes an explicit, non-trivial product, 
     - Define a concrete `metric`, `baseline`, `target`, and `by_date` (`YYYY-MM-DD`).
 
 4. Author and validate a structured draft.
+- Use the resolved project ID with `create_project_if_missing: false`; project provisioning belongs to the explicit setup step above.
 - Default to `scope_level: project` for project-wide decisions. Use `scope_level: repo` only when bound to one repository.
 - Never include raw secrets, API keys, bearer tokens, or private credentials in any decision field.
 - **Format fields clearly so the Chosen Option stands out in both the Dashboard and Chat**:

@@ -270,15 +270,15 @@ describe("platform catalog", () => {
     expect(codex).toBeDefined();
     expect(codex?.platform_definition).toBe("platforms/codex.toml");
     expect(codex?.skill.supported).toBe(true);
-    expect(codex?.skill.install_path_template).toBe("~/.codex/skills/{skill_name}");
+    expect(codex?.skill.install_path_template).toBe("~/.agents/skills/{skill_name}");
     expect(codex?.mcp.config_path_template).toBe("~/.codex/config.toml");
     expect(codex?.auth.mode).toBe("browser_oauth");
     expect(codex?.auth.instructions.length).toBeGreaterThan(0);
     expect(codex?.cli_install_template).toContain("dops install codex");
 
     const vscode = catalog.platforms.find((platform) => platform.id === "vscode");
-    expect(vscode?.skill.supported).toBe(false);
-    expect(vscode?.skill.install_path_template).toBeNull();
+    expect(vscode?.skill.supported).toBe(true);
+    expect(vscode?.skill.install_path_template).toBe("~/.copilot/skills/{skill_name}");
     expect(vscode?.mcp.root_key).toBe("servers");
   });
 
@@ -313,7 +313,7 @@ describe("skill bundle structure", () => {
 
   test("SKILL.md mandates in-agent decision analysis, plain language, obvious chosen option, and complete logged decision summary in response", () => {
     const content = fs.readFileSync(path.join(SKILL_DIR, "SKILL.md"), "utf8");
-    expect(content).toContain('prompt_version: "2.2.0"');
+    expect(content).toContain('prompt_version: "2.3.0"');
     expect(content).toContain("Plain, Simple English (Zero Jargon)");
     expect(content).toContain("Make the Chosen / Recommended Option Unmistakable");
     expect(content).toContain("Differentiated Depth (`Quick` vs `Comprehensive`)");

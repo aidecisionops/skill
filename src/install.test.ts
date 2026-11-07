@@ -62,13 +62,6 @@ describe("IDE-level skill install", () => {
   describe("claude-code", () => {
     test("installs SKILL.md and supporting files to ~/.claude/skills/decision-ops", () => {
       const platform = platforms["claude-code"];
-      const skillRoot = path.join(tmpHome, ".claude", "skills");
-      const result = installSkillToIde(
-        platform,
-        { skill_name: SKILL_NAME },
-        SKILL_DIR,
-      );
-
       // Override: install to tmp dir by setting env
       const tmpResult = installSkillToIde(
         {
@@ -162,13 +155,13 @@ describe("IDE-level skill install", () => {
   // ── Codex ──
 
   describe("codex", () => {
-    test("installs skill to ~/.codex/skills/decision-ops", () => {
+    test("installs skill to ~/.agents/skills/decision-ops", () => {
       const result = installSkillToIde(
         {
           ...platforms["codex"],
           skill: {
             ...platforms["codex"].skill!,
-            install_root_default: path.join(tmpHome, ".codex"),
+            install_root_default: path.join(tmpHome, ".agents", "skills"),
             install_root_env: undefined,
           },
         },
@@ -176,7 +169,7 @@ describe("IDE-level skill install", () => {
         SKILL_DIR,
       );
 
-      expect(result.path).toContain(path.join(".codex", "skills", "decision-ops"));
+      expect(result.path).toContain(path.join(".agents", "skills", "decision-ops"));
       for (const relFile of EXPECTED_SKILL_FILES) {
         expect(fs.existsSync(path.join(result.path, relFile))).toBe(true);
       }
@@ -207,13 +200,12 @@ describe("IDE-level skill install", () => {
     });
   });
 
-  // ── VS Code (skill not supported) ──
-
   describe("vscode", () => {
-    test("throws when trying to install skill (not supported)", () => {
-      expect(() => {
-        installSkillToIde(platforms["vscode"], {}, SKILL_DIR);
-      }).toThrow("does not support skill installation");
+    test("installs the complete skill into the Copilot personal discovery directory", () => {
+      const platform = platforms["vscode"];
+      const result = installSkillToIde({...platform,skill:{...platform.skill!,install_root_default:path.join(tmpHome,".copilot","skills"),install_root_env:undefined}}, {skill_name:SKILL_NAME}, SKILL_DIR);
+      expect(result.path).toContain(path.join(".copilot","skills","decision-ops"));
+      for (const relFile of EXPECTED_SKILL_FILES) expect(fs.existsSync(path.join(result.path,relFile))).toBe(true);
     });
   });
 

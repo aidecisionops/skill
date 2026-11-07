@@ -112,7 +112,7 @@
       "platform_definition": "platforms/codex.toml",
       "skill": {
         "supported": true,
-        "install_path_template": "~/.codex/skills/{skill_name}",
+        "install_path_template": "~/.agents/skills/{skill_name}",
         "install_path_env": null
       },
       "mcp": {
@@ -219,8 +219,8 @@
       "display_name": "VS Code",
       "platform_definition": "platforms/vscode.toml",
       "skill": {
-        "supported": false,
-        "install_path_template": null,
+        "supported": true,
+        "install_path_template": "~/.copilot/skills/{skill_name}",
         "install_path_env": null
       },
       "mcp": {

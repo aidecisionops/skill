@@ -64,7 +64,7 @@ IDE MCP authentication uses OAuth (authorization code + PKCE) exclusively. There
 
 Verify a read-only search using the expected organization/project before calling the integration ready. Inspect the installed `SKILL.md` separately to confirm the skill is available.
 
-Bind the repository by creating `.decisionops/manifest.toml`:
+The CLI writes `.decisionops/manifest.toml`. For manual installation only, create the same binding with real IDs:
 
 ```toml
 version = 1
@@ -76,14 +76,18 @@ mcp_server_name = "decision-ops-mcp"
 mcp_server_url = "https://api.aidecisionops.com/mcp"
 ```
 
+For first-run project choices, safe binding changes, and repeat-session reuse, see [Onboarding and Project Setup](decision-ops/references/onboarding-and-projects.md) and [Manifest Rules](decision-ops/references/decision-ops-manifest.md).
+
+To update an existing cached installation, use dops 0.1.28+ and `dops install <platform> --refresh`. Reinstallation without refresh can reuse old cached instructions.
+
 ## Supported platforms
 
 | Platform | Skill install | MCP config |
 |---|---|---|
 | Claude Code | `~/.claude/skills/decision-ops/` | `.mcp.json` |
-| VS Code | not supported | `.vscode/mcp.json` |
+| VS Code (Copilot) | `~/.copilot/skills/decision-ops/` | `.vscode/mcp.json` |
 | Cursor | `~/.cursor/skills/decision-ops/` | `.cursor/mcp.json` |
-| Codex | `~/.codex/skills/decision-ops/` | `~/.codex/config.toml` |
+| Codex | `~/.agents/skills/decision-ops/` | `~/.codex/config.toml` |
 | Antigravity | `~/.gemini/config/skills/decision-ops/` | `~/.gemini/config/mcp_config.json` |
 
 Platform definitions are in `platforms/*.toml`.

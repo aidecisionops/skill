@@ -1,64 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-REPO_PATH="${1:-$PWD}"
-MANIFEST_PATH="${REPO_PATH%/}/.decisionops/manifest.toml"
-
-usage() {
-  cat <<'USAGE'
-Usage: read-manifest.sh [repo-path]
-
-Read .decisionops/manifest.toml from a repository root and emit normalized JSON.
-Required keys:
-  - org_id
-  - project_id
-  - repo_ref
-USAGE
-}
-
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-  usage
+  echo 'Usage: read-manifest.sh [repo-path]'
+  echo 'Read a version 1 .decisionops/manifest.toml and emit binding fields as JSON.'
   exit 0
 fi
-
-if [[ ! -f "$MANIFEST_PATH" ]]; then
-  echo "Manifest not found: $MANIFEST_PATH" >&2
-  exit 1
+REPO_PATH="${1:-$PWD}"
+if command -v python3 >/dev/null && python3 -c 'import tomllib' 2>/dev/null; then
+  exec python3 - "$REPO_PATH" <<'PYTHON'
+import json,sys,tomllib
+from pathlib import Path
+p=Path(sys.argv[1]).resolve()/'.decisionops/manifest.toml'
+try:
+    d=tomllib.loads(p.read_text())
+    if d.get('version',1)!=1:raise ValueError('unsupported manifest version')
+    for key in ('org_id','project_id','repo_ref'):
+        if not isinstance(d.get(key),str) or not d[key].strip():raise ValueError('missing or invalid '+key)
+    print(json.dumps({'manifest_path':str(p),**{k:d.get(k,'') for k in ('org_id','project_id','repo_ref','repo_id','default_branch','mcp_server_name','mcp_server_url')}},indent=2))
+except (OSError,UnicodeError,tomllib.TOMLDecodeError,ValueError) as e:
+    print('Cannot read manifest: '+str(e),file=sys.stderr);sys.exit(1)
+PYTHON
 fi
-
-extract_toml_string() {
-  local key="$1"
-  local line
-  line="$(sed -nE "s/^[[:space:]]*${key}[[:space:]]*=[[:space:]]*\"([^\"]*)\"[[:space:]]*$/\\1/p" "$MANIFEST_PATH" | head -n 1)"
-  printf '%s' "$line"
-}
-
-json_escape() {
-  printf '%s' "$1" | sed \
-    -e 's/\\/\\\\/g' \
-    -e 's/"/\\"/g'
-}
-
-org_id="$(extract_toml_string org_id)"
-project_id="$(extract_toml_string project_id)"
-repo_ref="$(extract_toml_string repo_ref)"
-repo_id="$(extract_toml_string repo_id)"
-default_branch="$(extract_toml_string default_branch)"
-mcp_server_name="$(extract_toml_string mcp_server_name)"
-mcp_server_url="$(extract_toml_string mcp_server_url)"
-
-if [[ -z "$org_id" || -z "$project_id" || -z "$repo_ref" ]]; then
-  echo "Manifest is missing one or more required keys: org_id, project_id, repo_ref" >&2
-  exit 1
+if command -v dops >/dev/null; then
+  exec dops manifest show --repo-path "$REPO_PATH"
 fi
-
-printf '{\n'
-printf '  "manifest_path": "%s",\n' "$(json_escape "$MANIFEST_PATH")"
-printf '  "org_id": "%s",\n' "$(json_escape "$org_id")"
-printf '  "project_id": "%s",\n' "$(json_escape "$project_id")"
-printf '  "repo_ref": "%s",\n' "$(json_escape "$repo_ref")"
-printf '  "repo_id": "%s",\n' "$(json_escape "$repo_id")"
-printf '  "default_branch": "%s",\n' "$(json_escape "$default_branch")"
-printf '  "mcp_server_name": "%s",\n' "$(json_escape "$mcp_server_name")"
-printf '  "mcp_server_url": "%s"\n' "$(json_escape "$mcp_server_url")"
-printf '}\n'
+echo 'Read the manifest with agent file tools, or install dops 0.1.28+ (or Python 3.11+) to use this helper.' >&2
+exit 1

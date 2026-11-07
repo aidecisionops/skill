@@ -11,6 +11,7 @@ On first tool invocation, the IDE receives a `401` auth challenge with a `WWW-Au
 ## Public APIs / Tools
 
 `do-prepare-decision-gate`
+- Authorization: ordinary resolution uses `mcp:read`; `create_project_if_missing: true` requires `mcp:write`. The tool can mutate when creation is requested.
 - Purpose: combine project resolution and decision classification for one-step user prompting.
 - Input:
   - `repo_ref` (path or URL; optional when `project_id` is provided)
