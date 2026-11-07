@@ -22,6 +22,10 @@ The published `platforms/*.toml` catalog supplies installer destinations. Enviro
 
 For an existing MCP setup, `dops install <platform> --skip-mcp ...` adds the skill and binding without another server entry. Use `dops install <platform> --refresh` with dops 0.1.28+ to fetch current resources before reinstalling; review local customizations first. Without refresh, an earlier resource cache can be reused. For a stale skill, update dops if needed, reinstall from the current public skill catalog, and check the installed prompt version.
 
+## Duplicate skills from other agents
+
+Some clients import skills from other coding agents. Cursor can show an older `~/.claude/skills/decision-ops` instead of a same-named project skill. Open the skill from the client's list and inspect its actual path and `metadata.prompt_version`; finding the name alone is insufficient. Refresh the older installation using its own platform target, then reload the client and verify the selected source. Do not silently delete another agent's skill or disable all third-party imports. If the client still selects the older source, resolve that duplicate before recording client acceptance.
+
 ## First project and subsequent sessions
 
 The manifest is configuration, not a decision store or a credential. Read [Repository Manifest](decision-ops-manifest.md) before resolving project context. Existing mappings are reused; an unmapped repository prompts for a project choice. Creation occurs only after the user chooses it, using the gate with write permission. Store the returned ID, preserve unrelated manifest settings, then call the gate with creation disabled to verify reuse.
