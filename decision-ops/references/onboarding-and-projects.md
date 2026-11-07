@@ -10,6 +10,16 @@ Use the native [dops CLI](https://github.com/aidecisionops/cli) and [DecisionOps
 4. Inspect the skill, MCP configuration and repository manifest separately. The CLI and every coding client have independent OAuth sessions.
 5. Enable or approve the MCP connection in that client, complete its browser consent, and verify a read-only search using the manifest's real organization/project. Inspect the client's skill list or invoke the skill explicitly to verify discovery.
 
+After first login, **Connect your coding agent** opens this guided setup. Repository scanning is optional and can run alongside it. The default hosted scan checks repository coverage and provides starter suggestions; completion is not proof of recovered decisions. Users review and accept useful suggestions before they become decision records. For deeper discovery, inspect real code, architecture documents and history through the coding agent and present evidence-backed candidates for review.
+
+Use this first prompt after setup:
+
+> Read .decisionops/manifest.toml and the installed decision-ops skill. Use DecisionOps to search this organization and project for existing architecture decisions. Show the organization, project, and matching decision IDs. Do not create projects, draft decisions, or publish anything.
+
+Honor this as a read-only task. Do not trigger project creation or draft a decision to populate an empty search. Confirm the binding used; a successful empty result is valid in a new project. Label sample records as examples.
+
+During development, retrieve related decisions before changing an approach. For a meaningful tradeoff, compare options using repository evidence and prepare a proposal when requested. Let the user review and choose before accepting it; apply the main skill's validation and publishing rules. Routine spelling and formatting edits do not require records. Reuse the same manifest across later sessions and supported agents.
+
 | Platform ID | Default personal skill directory | MCP configuration |
 | --- | --- | --- |
 | `codex` | `~/.agents/skills/decision-ops` | `~/.codex/config.toml` |
