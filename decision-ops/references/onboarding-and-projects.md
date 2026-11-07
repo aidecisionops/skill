@@ -18,6 +18,8 @@ Use this first prompt after setup:
 
 Honor this as a read-only task. Do not trigger project creation or draft a decision to populate an empty search. Confirm the binding used; a successful empty result is valid in a new project. Label sample records as examples.
 
+The read-only test grant does not authorize writing. Creating projects or drafts requires `mcp:write`; accepting decisions requires `mcp:publish`, alongside workspace role checks. Use the client's normal consent controls to obtain additional access when the user is ready to record decisions; never silently expand the first-search grant.
+
 During development, retrieve related decisions before changing an approach. For a meaningful tradeoff, compare options using repository evidence and prepare a proposal when requested. Let the user review and choose before accepting it; apply the main skill's validation and publishing rules. Routine spelling and formatting edits do not require records. Reuse the same manifest across later sessions and supported agents.
 
 | Platform ID | Default personal skill directory | MCP configuration |
