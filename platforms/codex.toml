@@ -1,0 +1,43 @@
+id = "codex"
+display_name = "Codex"
+
+[skill]
+supported = true
+build_path = "skills/{skill_name}"
+install_root_env = "CODEX_HOME"
+install_root_default = "~/.codex"
+install_path_suffix = "skills/{skill_name}"
+
+[mcp]
+supported = true
+scope = "user"
+format = "codex_toml"
+build_path = "config.toml"
+install_path_env = "CODEX_CONFIG_PATH"
+install_root_env = "CODEX_HOME"
+install_root_default = "~/.codex"
+install_path_suffix = "config.toml"
+
+[manifest]
+supported = true
+build_path = ".decisionops/manifest.toml"
+
+[auth]
+mode = "browser_oauth"
+instructions = [
+  "Run `codex mcp login {mcp_server_name}` to trigger the OAuth flow in your browser.",
+  "Approve the consent screen at auth.aidecisionops.com.",
+  "If authentication is already cached against a stale URL, run `codex mcp logout {mcp_server_name}` first.",
+]
+
+[[auth.triggers]]
+kind = "cli"
+reason = "primary"
+label = "Authenticate"
+command = ["codex", "mcp", "login", "{mcp_server_name}"]
+
+[[auth.triggers]]
+kind = "cli"
+reason = "reset"
+label = "Clear stale credentials"
+command = ["codex", "mcp", "logout", "{mcp_server_name}"]

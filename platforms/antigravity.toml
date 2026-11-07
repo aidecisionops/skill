@@ -1,0 +1,43 @@
+id = "antigravity"
+display_name = "Antigravity"
+
+[skill]
+supported = true
+build_path = "skills/{skill_name}"
+install_root_env = "ANTIGRAVITY_SKILLS_DIR"
+install_root_default = "~/.gemini/config/skills"
+install_path_suffix = "{skill_name}"
+
+[mcp]
+supported = true
+scope = "user"
+format = "json_map"
+root_key = "mcpServers"
+build_path = "mcpServers.json"
+install_path_env = "ANTIGRAVITY_MCP_CONFIG_PATH"
+install_path_default = "~/.gemini/config/mcp_config.json"
+
+[manifest]
+supported = true
+build_path = ".decisionops/manifest.toml"
+
+[auth]
+mode = "browser_oauth"
+instructions = [
+  "Open the MCP manager for your Antigravity surface: CLI `/mcp`, App Customizations → Installed → MCP Servers, or the IDE MCP Store.",
+  "Find `{mcp_server_name}`, enable it if disabled, and complete its authentication prompt and browser consent.",
+  "If the session is stale, reconnect this server in the MCP manager, then retry the interrupted request.",
+  "Client versions and OAuth registration support vary. Verify a real search in the intended organization and project before treating setup as complete.",
+]
+
+[[auth.triggers]]
+kind = "manual"
+reason = "primary"
+label = "Toggle server in MCP Store"
+hint = "Open your Antigravity MCP manager (CLI `/mcp`, App Customizations, or IDE MCP Store), select `{mcp_server_name}`, and complete its authentication prompt."
+
+[[auth.triggers]]
+kind = "manual"
+reason = "reset"
+label = "Toggle off/on"
+hint = "Reconnect `{mcp_server_name}` in your MCP manager, then retry the interrupted request."

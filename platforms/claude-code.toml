@@ -1,0 +1,43 @@
+id = "claude-code"
+display_name = "Claude Code"
+
+[skill]
+supported = true
+build_path = "skills/{skill_name}"
+install_root_env = "CLAUDE_SKILLS_DIR"
+install_root_default = "~/.claude/skills"
+install_path_suffix = "{skill_name}"
+
+[mcp]
+supported = true
+scope = "project"
+format = "json_map"
+root_key = "mcpServers"
+build_path = ".mcp.json"
+install_path_env = "CLAUDE_MCP_CONFIG_PATH"
+install_path_default = "{repo_path}/.mcp.json"
+
+[manifest]
+supported = true
+build_path = ".decisionops/manifest.toml"
+
+[auth]
+mode = "browser_oauth"
+instructions = [
+  "Inside {display_name}, run the `/mcp` slash command.",
+  "Select `{mcp_server_name}` from the list, then choose `Authenticate`.",
+  "Approve the consent screen at auth.aidecisionops.com in your browser.",
+  "To clear a stale session, run `/mcp` and choose `Clear authentication` for the same server before retrying.",
+]
+
+[[auth.triggers]]
+kind = "slash"
+reason = "primary"
+label = "Authenticate via /mcp"
+hint = "Inside {display_name}, run `/mcp`, select `{mcp_server_name}`, choose `Authenticate`."
+
+[[auth.triggers]]
+kind = "slash"
+reason = "reset"
+label = "Clear stale session"
+hint = "Inside {display_name}, run `/mcp`, select `{mcp_server_name}`, choose `Clear authentication`."

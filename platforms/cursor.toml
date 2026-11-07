@@ -1,0 +1,42 @@
+id = "cursor"
+display_name = "Cursor"
+
+[skill]
+supported = true
+build_path = "skills/{skill_name}"
+install_root_env = "CURSOR_SKILLS_DIR"
+install_root_default = "~/.cursor/skills"
+install_path_suffix = "{skill_name}"
+
+[mcp]
+supported = true
+scope = "project"
+format = "json_map"
+root_key = "mcpServers"
+build_path = ".cursor/mcp.json"
+install_path_env = "CURSOR_MCP_CONFIG_PATH"
+install_path_default = "{repo_path}/.cursor/mcp.json"
+
+[manifest]
+supported = true
+build_path = ".decisionops/manifest.toml"
+
+[auth]
+mode = "browser_oauth"
+instructions = [
+  "Open Cursor MCP settings (Tools & MCP or Customize, depending on version) and enable `{mcp_server_name}` if disabled.",
+  "Follow the server authentication prompt, complete DecisionOps browser sign-in and consent, and retry an interrupted request.",
+  "For stale credentials, use the available sign-out or reconnect controls for this server. A global token reset affects other MCP connections too.",
+]
+
+[[auth.triggers]]
+kind = "palette"
+reason = "primary"
+label = "Toggle server to trigger OAuth"
+hint = "Open Cursor MCP settings, select `{mcp_server_name}`, and follow its authentication prompt."
+
+[[auth.triggers]]
+kind = "palette"
+reason = "reset"
+label = "Reconnect stale session"
+hint = "Use the available sign-out or reconnect controls for `{mcp_server_name}`. A global token reset affects every MCP server."

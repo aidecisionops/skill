@@ -1,0 +1,39 @@
+id = "vscode"
+display_name = "VS Code"
+
+[skill]
+supported = false
+
+[mcp]
+supported = true
+scope = "project"
+format = "json_map"
+root_key = "servers"
+build_path = ".vscode/mcp.json"
+install_path_env = "VSCODE_MCP_CONFIG_PATH"
+install_path_default = "{repo_path}/.vscode/mcp.json"
+
+[manifest]
+supported = true
+build_path = ".decisionops/manifest.toml"
+
+[auth]
+mode = "browser_oauth"
+instructions = [
+  "Open Command Palette (Cmd/Ctrl+Shift+P) → `MCP: List Servers`, select `{mcp_server_name}`, then `Start Server` to trigger OAuth.",
+  "Approve the consent screen at auth.aidecisionops.com in your browser.",
+  "To clear a stale session, select `{mcp_server_name}` in `MCP: List Servers` → `Disconnect Account` before starting the server again.",
+  "Requires VS Code 1.102+ (built-in MCP). Account-level management: Accounts menu → `Manage Trusted MCP Servers`.",
+]
+
+[[auth.triggers]]
+kind = "palette"
+reason = "primary"
+label = "Start server to trigger OAuth"
+hint = "Open Command Palette (Cmd/Ctrl+Shift+P) → `MCP: List Servers` → select `{mcp_server_name}` → `Start Server`. Requires VS Code 1.102+."
+
+[[auth.triggers]]
+kind = "palette"
+reason = "reset"
+label = "Disconnect account"
+hint = "Open Command Palette (Cmd/Ctrl+Shift+P) → `MCP: List Servers` → select `{mcp_server_name}` → `Disconnect Account`, then start the server again."

@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "description": "Representative activation checks for the decision-ops skill. Positive cases should trigger the skill; negative cases should not.",
+  "positive": [
+    {
+      "id": "trigger-001",
+      "prompt": "Should we migrate from self-hosted Postgres to a managed database for our analytics service?",
+      "why": "Infrastructure migration with cost, reliability, and operational tradeoffs."
+    },
+    {
+      "id": "trigger-002",
+      "prompt": "Which rollout strategy should we use for the new pricing page: staged rollout or full launch?",
+      "why": "Release strategy with explicit product and risk tradeoffs."
+    },
+    {
+      "id": "trigger-003",
+      "prompt": "Choose between Stripe Billing and a custom invoicing flow for enterprise contracts.",
+      "why": "Vendor and operating-model decision."
+    },
+    {
+      "id": "trigger-004",
+      "prompt": "We need to prioritize either SOC 2 logging work or performance optimization this quarter. What should we cut?",
+      "why": "Resource allocation with compliance and customer impact implications."
+    },
+    {
+      "id": "trigger-005",
+      "prompt": "Should we keep the current onboarding flow or add an approval gate for regulated customers?",
+      "why": "Product and compliance tradeoff."
+    },
+    {
+      "id": "trigger-006",
+      "prompt": "Which option is better for search: stay on Elasticsearch or move to OpenSearch?",
+      "why": "Platform or provider choice with migration cost and reliability impact."
+    },
+    {
+      "id": "trigger-007",
+      "prompt": "How should we release the new audit log export feature without breaking existing customer workflows?",
+      "why": "Release strategy with customer-impact tradeoffs."
+    },
+    {
+      "id": "trigger-008",
+      "prompt": "Should we store customer documents for 30 days or 1 year to satisfy the new contract?",
+      "why": "Data-retention and legal obligation decision."
+    },
+    {
+      "id": "trigger-009",
+      "prompt": "Select a partner for KYC verification and explain the tradeoffs.",
+      "why": "Partner selection with compliance and cost implications."
+    },
+    {
+      "id": "trigger-010",
+      "prompt": "Do we keep the current monolith for another year or start a staged migration to services?",
+      "why": "Architecture and rollout decision."
+    },
+    {
+      "id": "trigger-011",
+      "prompt": "Discover existing architectural and product decisions in this repository, check whether they still hold in the current code, and prepare evidence-backed drafts for review.",
+      "why": "Agent-run repository decision discovery with temporal validity verification and human review before import."
+    },
+    {
+      "id": "trigger-012",
+      "prompt": "Audit our repo's ADRs, git history, and configs to find past technical decisions, including any choices that were later reverted or superseded.",
+      "why": "Multi-source repository decision discovery with current, superseded, and reverted classification."
+    }
+  ],
+  "negative": [
+    {
+      "id": "skip-001",
+      "prompt": "Fix the typo in the README heading.",
+      "why": "Trivial documentation edit with no meaningful tradeoff."
+    },
+    {
+      "id": "skip-002",
+      "prompt": "Rename this variable to match our lint rule.",
+      "why": "Local code cleanup only."
+    },
+    {
+      "id": "skip-003",
+      "prompt": "Reformat this file with prettier.",
+      "why": "Pure formatting task."
+    },
+    {
+      "id": "skip-004",
+      "prompt": "Bump the patch version of a dependency with no behavior change.",
+      "why": "Routine version maintenance without an architectural choice."
+    },
+    {
+      "id": "skip-005",
+      "prompt": "Translate this paragraph into Spanish.",
+      "why": "Non-decision content transformation."
+    },
+    {
+      "id": "skip-006",
+      "prompt": "Summarize the last team meeting notes.",
+      "why": "Summarization only."
+    },
+    {
+      "id": "skip-007",
+      "prompt": "Add a missing semicolon in src/cli.ts.",
+      "why": "Tiny code fix without tradeoff analysis."
+    },
+    {
+      "id": "skip-008",
+      "prompt": "Generate release notes from these commits.",
+      "why": "Documentation task unless the user asks for a release strategy decision."
+    },
+    {
+      "id": "skip-009",
+      "prompt": "Update the CONTRIBUTING guide to mention Node 24.",
+      "why": "Documentation update without a decision to record."
+    },
+    {
+      "id": "skip-010",
+      "prompt": "Sort these imports and remove unused ones.",
+      "why": "Mechanical code hygiene."
+    }
+  ]
+}

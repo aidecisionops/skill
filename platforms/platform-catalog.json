@@ -1,0 +1,268 @@
+{
+  "version": 1,
+  "defaults": {
+    "skill_name": "decision-ops",
+    "mcp_server_name": "decision-ops-mcp",
+    "mcp_server_url": "https://api.aidecisionops.com/mcp"
+  },
+  "platforms": [
+    {
+      "id": "antigravity",
+      "display_name": "Antigravity",
+      "platform_definition": "platforms/antigravity.toml",
+      "skill": {
+        "supported": true,
+        "install_path_template": "~/.gemini/config/skills/{skill_name}",
+        "install_path_env": null
+      },
+      "mcp": {
+        "supported": true,
+        "scope": "user",
+        "config_path_template": "~/.gemini/config/mcp_config.json",
+        "config_path_env": "ANTIGRAVITY_MCP_CONFIG_PATH",
+        "format": "json_map",
+        "root_key": "mcpServers"
+      },
+      "manifest": {
+        "supported": true,
+        "path_template": ".decisionops/manifest.toml"
+      },
+      "auth": {
+        "mode": "browser_oauth",
+        "instructions": [
+          "Open the MCP manager for your Antigravity surface: CLI `/mcp`, App Customizations → Installed → MCP Servers, or the IDE MCP Store.",
+          "Find `decision-ops-mcp`, enable it if disabled, and complete its authentication prompt and browser consent.",
+          "If the session is stale, reconnect this server in the MCP manager, then retry the interrupted request.",
+          "Client versions and OAuth registration support vary. Verify a real search in the intended organization and project before treating setup as complete."
+        ],
+        "triggers": [
+          {
+            "kind": "manual",
+            "reason": "primary",
+            "label": "Toggle server in MCP Store",
+            "hint": "Open your Antigravity MCP manager (CLI `/mcp`, App Customizations, or IDE MCP Store), select `decision-ops-mcp`, and complete its authentication prompt."
+          },
+          {
+            "kind": "manual",
+            "reason": "reset",
+            "label": "Toggle off/on",
+            "hint": "Reconnect `decision-ops-mcp` in your MCP manager, then retry the interrupted request."
+          }
+        ]
+      },
+      "default_server": {
+        "name": "decision-ops-mcp",
+        "url": "https://api.aidecisionops.com/mcp"
+      },
+      "cli_install_template": "dops install antigravity --repo-path {repo_path} --org-id {org_id} --project-id {project_id} --repo-ref {repo_ref}"
+    },
+    {
+      "id": "claude-code",
+      "display_name": "Claude Code",
+      "platform_definition": "platforms/claude-code.toml",
+      "skill": {
+        "supported": true,
+        "install_path_template": "~/.claude/skills/{skill_name}",
+        "install_path_env": null
+      },
+      "mcp": {
+        "supported": true,
+        "scope": "project",
+        "config_path_template": "{repo_path}/.mcp.json",
+        "config_path_env": "CLAUDE_MCP_CONFIG_PATH",
+        "format": "json_map",
+        "root_key": "mcpServers"
+      },
+      "manifest": {
+        "supported": true,
+        "path_template": ".decisionops/manifest.toml"
+      },
+      "auth": {
+        "mode": "browser_oauth",
+        "instructions": [
+          "Inside Claude Code, run the `/mcp` slash command.",
+          "Select `decision-ops-mcp` from the list, then choose `Authenticate`.",
+          "Approve the consent screen at auth.aidecisionops.com in your browser.",
+          "To clear a stale session, run `/mcp` and choose `Clear authentication` for the same server before retrying."
+        ],
+        "triggers": [
+          {
+            "kind": "slash",
+            "reason": "primary",
+            "label": "Authenticate via /mcp",
+            "hint": "Inside Claude Code, run `/mcp`, select `decision-ops-mcp`, choose `Authenticate`."
+          },
+          {
+            "kind": "slash",
+            "reason": "reset",
+            "label": "Clear stale session",
+            "hint": "Inside Claude Code, run `/mcp`, select `decision-ops-mcp`, choose `Clear authentication`."
+          }
+        ]
+      },
+      "default_server": {
+        "name": "decision-ops-mcp",
+        "url": "https://api.aidecisionops.com/mcp"
+      },
+      "cli_install_template": "dops install claude-code --repo-path {repo_path} --org-id {org_id} --project-id {project_id} --repo-ref {repo_ref}"
+    },
+    {
+      "id": "codex",
+      "display_name": "Codex",
+      "platform_definition": "platforms/codex.toml",
+      "skill": {
+        "supported": true,
+        "install_path_template": "~/.codex/skills/{skill_name}",
+        "install_path_env": null
+      },
+      "mcp": {
+        "supported": true,
+        "scope": "user",
+        "config_path_template": "~/.codex/config.toml",
+        "config_path_env": "CODEX_CONFIG_PATH",
+        "format": "codex_toml",
+        "root_key": null
+      },
+      "manifest": {
+        "supported": true,
+        "path_template": ".decisionops/manifest.toml"
+      },
+      "auth": {
+        "mode": "browser_oauth",
+        "instructions": [
+          "Run `codex mcp login decision-ops-mcp` to trigger the OAuth flow in your browser.",
+          "Approve the consent screen at auth.aidecisionops.com.",
+          "If authentication is already cached against a stale URL, run `codex mcp logout decision-ops-mcp` first."
+        ],
+        "triggers": [
+          {
+            "kind": "cli",
+            "reason": "primary",
+            "label": "Authenticate",
+            "command": [
+              "codex",
+              "mcp",
+              "login",
+              "decision-ops-mcp"
+            ]
+          },
+          {
+            "kind": "cli",
+            "reason": "reset",
+            "label": "Clear stale credentials",
+            "command": [
+              "codex",
+              "mcp",
+              "logout",
+              "decision-ops-mcp"
+            ]
+          }
+        ]
+      },
+      "default_server": {
+        "name": "decision-ops-mcp",
+        "url": "https://api.aidecisionops.com/mcp"
+      },
+      "cli_install_template": "dops install codex --repo-path {repo_path} --org-id {org_id} --project-id {project_id} --repo-ref {repo_ref}"
+    },
+    {
+      "id": "cursor",
+      "display_name": "Cursor",
+      "platform_definition": "platforms/cursor.toml",
+      "skill": {
+        "supported": true,
+        "install_path_template": "~/.cursor/skills/{skill_name}",
+        "install_path_env": null
+      },
+      "mcp": {
+        "supported": true,
+        "scope": "project",
+        "config_path_template": "{repo_path}/.cursor/mcp.json",
+        "config_path_env": "CURSOR_MCP_CONFIG_PATH",
+        "format": "json_map",
+        "root_key": "mcpServers"
+      },
+      "manifest": {
+        "supported": true,
+        "path_template": ".decisionops/manifest.toml"
+      },
+      "auth": {
+        "mode": "browser_oauth",
+        "instructions": [
+          "Open Cursor MCP settings (Tools & MCP or Customize, depending on version) and enable `decision-ops-mcp` if disabled.",
+          "Follow the server authentication prompt, complete DecisionOps browser sign-in and consent, and retry an interrupted request.",
+          "For stale credentials, use the available sign-out or reconnect controls for this server. A global token reset affects other MCP connections too."
+        ],
+        "triggers": [
+          {
+            "kind": "palette",
+            "reason": "primary",
+            "label": "Toggle server to trigger OAuth",
+            "hint": "Open Cursor MCP settings, select `decision-ops-mcp`, and follow its authentication prompt."
+          },
+          {
+            "kind": "palette",
+            "reason": "reset",
+            "label": "Reconnect stale session",
+            "hint": "Use the available sign-out or reconnect controls for `decision-ops-mcp`. A global token reset affects every MCP server."
+          }
+        ]
+      },
+      "default_server": {
+        "name": "decision-ops-mcp",
+        "url": "https://api.aidecisionops.com/mcp"
+      },
+      "cli_install_template": "dops install cursor --repo-path {repo_path} --org-id {org_id} --project-id {project_id} --repo-ref {repo_ref}"
+    },
+    {
+      "id": "vscode",
+      "display_name": "VS Code",
+      "platform_definition": "platforms/vscode.toml",
+      "skill": {
+        "supported": false,
+        "install_path_template": null,
+        "install_path_env": null
+      },
+      "mcp": {
+        "supported": true,
+        "scope": "project",
+        "config_path_template": "{repo_path}/.vscode/mcp.json",
+        "config_path_env": "VSCODE_MCP_CONFIG_PATH",
+        "format": "json_map",
+        "root_key": "servers"
+      },
+      "manifest": {
+        "supported": true,
+        "path_template": ".decisionops/manifest.toml"
+      },
+      "auth": {
+        "mode": "browser_oauth",
+        "instructions": [
+          "Open Command Palette (Cmd/Ctrl+Shift+P) → `MCP: List Servers`, select `decision-ops-mcp`, then `Start Server` to trigger OAuth.",
+          "Approve the consent screen at auth.aidecisionops.com in your browser.",
+          "To clear a stale session, select `decision-ops-mcp` in `MCP: List Servers` → `Disconnect Account` before starting the server again.",
+          "Requires VS Code 1.102+ (built-in MCP). Account-level management: Accounts menu → `Manage Trusted MCP Servers`."
+        ],
+        "triggers": [
+          {
+            "kind": "palette",
+            "reason": "primary",
+            "label": "Start server to trigger OAuth",
+            "hint": "Open Command Palette (Cmd/Ctrl+Shift+P) → `MCP: List Servers` → select `decision-ops-mcp` → `Start Server`. Requires VS Code 1.102+."
+          },
+          {
+            "kind": "palette",
+            "reason": "reset",
+            "label": "Disconnect account",
+            "hint": "Open Command Palette (Cmd/Ctrl+Shift+P) → `MCP: List Servers` → select `decision-ops-mcp` → `Disconnect Account`, then start the server again."
+          }
+        ]
+      },
+      "default_server": {
+        "name": "decision-ops-mcp",
+        "url": "https://api.aidecisionops.com/mcp"
+      },
+      "cli_install_template": "dops install vscode --repo-path {repo_path} --org-id {org_id} --project-id {project_id} --repo-ref {repo_ref}"
+    }
+  ]
+}

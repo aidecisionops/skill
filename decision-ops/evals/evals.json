@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "methodology": {
+    "baseline": "Run each case without explicitly invoking $decision-ops and capture the output.",
+    "with_skill": "Run the same case with $decision-ops active and compare the result against the baseline output.",
+    "grader": "Use automated rubric checks when the expected behavior is deterministic. Keep human review for activation quality, missing context, and decision quality.",
+    "metrics": [
+      "activation_precision",
+      "activation_recall",
+      "workflow_fidelity",
+      "decision_quality",
+      "temporal_status_accuracy",
+      "evidence_validity",
+      "abstention_rate",
+      "duplicate_rate",
+      "baseline_delta",
+      "latency",
+      "tokens"
+    ]
+  },
+  "cases": [
+    {
+      "id": "recordable-quick-rollout",
+      "task": "We need to choose whether to release a new pricing page behind a feature flag or switch all users at once. Review prior decisions, decide on a rollout, and prepare the decision draft.",
+      "expected_behavior": [
+        "Classifies the task as recordable.",
+        "Reads .decisionops/manifest.toml when present before calling the central lifecycle.",
+        "Shows or describes the one-step gate with Quick, Comprehensive, Skip, or Other choices.",
+        "Performs full in-agent decision analysis comparing at least two rollout options with pros and cons before deciding.",
+        "Outputs the complete structured description of the logged decision in its response (Decision ID, Status, Project, Title, Context, Chosen Decision & Rationale, Alternatives Considered, Consequences/Tradeoffs, Validation Plan, and Dashboard Link) rather than only mentioning decision_id."
+      ],
+      "rubric": [
+        "Performs complete decision analysis inside the coding agent and logs rich context, options, decision, consequences, and validation_plan.",
+        "Renders the full structured summary of what was logged directly in the user-facing response.",
+        "Uses the documented MCP lifecycle in the correct order and does not claim local markdown is the canonical store."
+      ],
+      "compare_to_baseline": true,
+      "requires_human_review": true
+    },
+    {
+      "id": "recordable-compliance-retention",
+      "task": "A new enterprise contract may require us to retain audit exports for one year instead of 30 days. Evaluate options, highlight compliance risk, and draft the decision.",
+      "expected_behavior": [
+        "Classifies the task as recordable.",
+        "Surfaces hard constraints such as compliance or legal obligations.",
+        "Performs full in-agent decision analysis comparing retention options with reversibility and operational cost.",
+        "Produces a validation plan with metric, baseline, target, and by_date and fails closed if validation errors remain.",
+        "Displays the complete structured description of the logged decision record in the agent response so the user sees everything that was logged."
+      ],
+      "rubric": [
+        "Calls out compliance as a hard constraint rather than a soft preference.",
+        "Makes the tradeoff between storage cost and contractual risk explicit both in the MCP draft payload and in the rendered response summary.",
+        "Uses single-option justification only if multiple viable options do not exist."
+      ],
+      "compare_to_baseline": true,
+      "requires_human_review": true
+    },
+    {
+      "id": "manifest-bound-fallback",
+      "task": "Choose whether to move from Elasticsearch to OpenSearch when the repository is not mapped centrally but a valid .decisionops/manifest.toml exists.",
+      "expected_behavior": [
+        "Explains that central repository resolution failed.",
+        "Continues in manifest-bound mode using org_id and project_id from the manifest.",
+        "Keeps the canonical store as the central MCP lifecycle rather than a local markdown fallback.",
+        "Performs full in-agent decision analysis comparing at least two viable options and outputs the complete logged decision summary in the response."
+      ],
+      "rubric": [
+        "States manifest-bound mode explicitly.",
+        "Preserves the normal workflow and full logged decision summary output after fallback.",
+        "Avoids silent context drift between manifest and central state."
+      ],
+      "compare_to_baseline": true,
+      "requires_human_review": true
+    },
+    {
+      "id": "non-recordable-typo",
+      "task": "Fix the typo in docs/getting-started.md and do not create a decision entry.",
+      "expected_behavior": [
+        "Classifies the task as non-recordable or selects Skip.",
+        "Does not attempt the central write lifecycle.",
+        "Continues with the implementation without decision output."
+      ],
+      "rubric": [
+        "Avoids false-positive activation.",
+        "Keeps the response brief and task-focused."
+      ],
+      "compare_to_baseline": true,
+      "requires_human_review": false
+    },
+    {
+      "id": "agent-run-repo-discovery-with-review",
+      "task": "Discover existing architectural and product decisions in this repository, check whether they still hold on the current branch, and let me choose which candidates to import into DecisionOps.",
+      "expected_behavior": [
+        "Reads references/repo-discovery-workflow.md and never relies on a hosted LLM scan to invent repository decisions.",
+        "Runs a fast zero-LLM preflight via do-discover-decisions (or do-prepare-decision-gate + do-search-decisions) to resolve project context and fetch existing DecisionOps decisions.",
+        "Inspects multiple local sources (ADRs/docs, configs/manifests, git commits/diffs, and accessible PRs) and performs a temporal_check against the current HEAD branch for each candidate.",
+        "Presents a Discovered Candidates Review Table (Title & narrow decision_statement, Status current|superseded|reverted|proposed|uncertain, Temporal Check, Primary Evidence with local_only flags, and Ambiguities) and asks the user which candidates to submit before calling do-submit-discovery-candidates.",
+        "Explains that submitted candidates land in DecisionOps as unverified discovery drafts (review_status: pending_review) requiring explicit human acceptance rather than auto-published Accepted decisions.",
+        "Submits only user-approved candidates via do-submit-discovery-candidates with deterministic stable_import_key values and provenance.runner_type = 'agent'."
+      ],
+      "rubric": [
+        "Does not blindly trust or invoke a hosted LLM scan; performs local multi-source investigation and temporal verification inside the agent.",
+        "Keeps decision_statement narrow and strictly separate from rationale ('Why this was inferred'), without inventing fake alternatives or fabricated deadlines.",
+        "Enforces the human approval boundary before calling do-submit-discovery-candidates."
+      ],
+      "compare_to_baseline": true,
+      "requires_human_review": true
+    },
+    {
+      "id": "repo-discovery-reverted-and-superseded-detection",
+      "task": "Audit the repository's git history and current tree for past storage and caching decisions. Note that commit a1b2c3d added Redis caching but commit f9e8d7c reverted it two days later, and ADR-002's file-based queue was later replaced by Cloudflare Queues in wrangler.toml.",
+      "expected_behavior": [
+        "Inspects subsequent commits and the current HEAD tree rather than assuming merged commits or old ADRs are still current.",
+        "Classifies the reverted Redis caching commit (a1b2c3d reverted by f9e8d7c) with candidate_status: 'reverted' and populates temporal_check.reverted_by_ref and temporal_check.reason.",
+        "Classifies the replaced file-based queue from ADR-002 with candidate_status: 'superseded' (citing the Cloudflare Queues replacement in wrangler.toml) and classifies the active Cloudflare Queues configuration as candidate_status: 'current'.",
+        "Groups repeated commits for the same architectural choice under one deduplicated candidate with a deterministic stable_import_key."
+      ],
+      "rubric": [
+        "Never marks a reverted or replaced historical choice as 'current'.",
+        "Provides concrete checked_against_ref, later_changes_examined, and reason fields in temporal_check for every candidate.",
+        "Includes relationship edges (such as supersedes) only when backed by direct repository evidence, without O(N^2) pairwise LLM edge guessing."
+      ],
+      "compare_to_baseline": true,
+      "requires_human_review": true
+    },
+    {
+      "id": "repo-discovery-abstention-on-weak-evidence",
+      "task": "Scan this utility repository (which only contains a standard tsconfig.json, prettier formatting config, and a single string-padding helper function with no ADRs or tradeoff commits) and import all architectural decisions.",
+      "expected_behavior": [
+        "Applies Rule 4 (Prefer abstention) when repository evidence only shows that routine boilerplate or standard tooling files exist without a non-trivial architectural, product, or business choice.",
+        "Abstains from fabricating decision drafts out of standard tsconfig/prettier boilerplate or trivial helper code, or reports them only as factual observations.",
+        "If later history or remote PRs cannot be verified for an ambiguous change, marks candidate_status: 'uncertain' rather than claiming 'current', and does not invent unstated options, metrics, or deadlines."
+      ],
+      "rubric": [
+        "Demonstrates discipline by abstaining when evidence only supports 'this code/config exists' rather than 'the team made a non-trivial choice'.",
+        "Does not call do-submit-discovery-candidates with fabricated candidates when no genuine decision evidence exists."
+      ],
+      "compare_to_baseline": true,
+      "requires_human_review": true
+    }
+  ]
+}
