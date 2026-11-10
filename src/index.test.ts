@@ -313,7 +313,7 @@ describe("skill bundle structure", () => {
 
   test("SKILL.md mandates in-agent decision analysis, plain language, obvious chosen option, and complete logged decision summary in response", () => {
     const content = fs.readFileSync(path.join(SKILL_DIR, "SKILL.md"), "utf8");
-    expect(content).toContain('prompt_version: "2.4.0"');
+    expect(content).toContain('prompt_version: "2.4.1"');
     expect(content).toContain("Plain, Simple English (Zero Jargon)");
     expect(content).toContain("Make the Chosen / Recommended Option Unmistakable");
     expect(content).toContain("Differentiated Depth (`Quick` vs `Comprehensive`)");

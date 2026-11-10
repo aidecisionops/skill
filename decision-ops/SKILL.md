@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: "Requires repository-local files and network access to the Decision Ops MCP service at https://api.aidecisionops.com/mcp. MCP authentication requires interactive browser OAuth (authorization code + PKCE) — there is no API key or token-based alternative for IDE users. The MCP server must be manually enabled in the IDE settings before first use."
 metadata:
   maturity: "stable"
-  prompt_version: "2.4.0"
+  prompt_version: "2.4.1"
 ---
 
 # Decision Ops

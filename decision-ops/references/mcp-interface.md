@@ -77,10 +77,10 @@ On first tool invocation, the IDE receives a `401` auth challenge with a `WWW-Au
   - **Mandatory response summary**: After creating and validating a draft (or publishing it), the coding agent must output the full structured description of what was logged in its response to the user (Decision ID, Status, Project/Scope, Title, Domain/Impact, Context & Problem Statement, Chosen Decision & Rationale, Alternatives Considered, Consequences/Risks/Tradeoffs, Validation Plan, and Dashboard Link `https://app.aidecisionops.com/decisions?id=<decision_id>`).
 
 `do-update-decision-implementation`
-- Requires `mcp:write`.
+- Requires `mcp:write` for implementation updates and `mcp:publish` for Verified.
 - Pass `org_id`, `project_id`, `decision_id`, and `state` (`Building|Built|Verified|Failed`).
 - For `Verified`, pass `evidence` with the plan's `metric`, the `observed` result, a `reference` to the measurement, and `outcome: "passed"`. A failed measurement can be recorded with `outcome: "failed"` when moving to `Failed`.
-- `Built` requires a linked commit. Check `do-get-decision` for current progress, commit links, and saved evidence.
+- `Built` and `Verified` require a commit linked from the repository’s default branch. Successful state and evidence changes are audited. Check `do-get-decision` for current progress, commit links, and saved evidence.
 
 `do-validate-decision`
 - Input:
@@ -112,6 +112,8 @@ On first tool invocation, the IDE receives a `401` auth challenge with a `WWW-Au
 - Output: full `DecisionRecord`
 
 `do-discover-decisions`
+
+- Preflight requires read access and uses existing project bindings. Requesting hosted discovery requires write access. Private repository coverage requires a GitHub App installation connected to the active workspace.
 - Purpose: fast, zero-LLM repository discovery preflight and existing-decisions context check. Returns repository access/coverage metadata and any existing DecisionOps decisions or unaccepted suggestions so the coding agent can deduplicate and verify supersession locally.
 - Deprecation Note (Hosted LLM Scanning): Invoking a hosted LLM repository scan from the coding agent skill is **deprecated**. Deep semantic repository analysis and temporal validity verification must run locally inside the user's coding agent following [references/repo-discovery-workflow.md](repo-discovery-workflow.md), and approved candidates must be submitted via `do-submit-discovery-candidates`.
 - Input:
@@ -122,11 +124,15 @@ On first tool invocation, the IDE receives a `401` auth challenge with a `WWW-Au
   - `org_id`, `project_id`, `repo_ref`, `branch`
   - `coverage` (`accessible`, `default_branch`, `head_commit`, `adr_files_found`, `open_prs_visible`, `unavailable_sources[]`)
   - `existing_decisions[]` (`decision_id`, `title`, `status`, `type`, `updated_at`)
-  - `existing_suggestions[]` (`suggestion_id`, `stable_import_key`, `title`, `candidate_status`, `review_status`, `provenance`)
+  - `existing_suggestions[]` (`suggestion_id`, `job_id`, `stable_import_key`, `title`, `candidate_status`, `review_status`: `pending_review|accepted|rejected`, `accepted`, `rejected`, `decision_id`) — every suggestion for the repository in the resolved project (queried directly, independent of scan-job age)
+  - `llm_calls_count` — real number of completed LLM calls made by this request: always `0` for the preflight; for the opt-in hosted planner it is the planner budget tracker's completed-call count
 - Notes:
+  - Treat `review_status: "rejected"` suggestions as already reviewed: do not re-propose them. Re-submitting a rejected `stable_import_key` returns `action: "skipped_rejected"` and never revives it.
   - Never treat preflight coverage counts (e.g., `"3 ADR files found"`) as inferred decisions, and never rely on a hosted scan to generate decision claims for the agent.
 
 `do-submit-discovery-candidates`
+
+- Submit with a signed-in workspace member. Candidate identity and resubmission are scoped to the selected project and repository.
 - Purpose: idempotently import user-reviewed, evidence-backed repository decision candidates discovered by the coding agent as **unverified discovery drafts** requiring explicit human acceptance in DecisionOps.
 - Input (implements the **8-Field Draft Contract**):
   - `org_id`, `project_id`
@@ -135,7 +141,7 @@ On first tool invocation, the IDE receives a `401` auth challenge with a `WWW-Au
     - `branch` (target branch inspected, e.g., `"main"`)
     - `base_commit` (commit SHA on `branch` against which candidates and `temporal_check` were verified)
     - `analyzed_at` (ISO-8601 timestamp of the agent analysis)
-  - `candidates[]` (array of 1..50 user-approved discovery candidate drafts):
+  - `candidates[]` (array of 1..50 user-approved discovery candidate drafts; each candidate carries at most 50 `evidence[]` items, evidence text fields at most 2000 chars, `decision_statement`/`context`/`rationale` at most 20000 chars; at most 250 edges/relationships per submission. Larger payloads are rejected with `VALIDATION_FAILED`):
     - **2. Title & Decision Statement**:
       - `title` (`< 80` chars, plain English stating the chosen approach)
       - `decision_statement` (narrow, plain-English description of the chosen approach and scope; **strictly separate** from analyzer commentary)
@@ -168,10 +174,11 @@ On first tool invocation, the IDE receives a `401` auth challenge with a `WWW-Au
       - `provenance` (`runner_type`: `"agent"`, `agent_name`, `skill_version`, `source_locality`: `"local"|"remote"|"mixed"`)
     - **8. Stable Import Key & Evidence-Backed Relationships**:
       - `stable_import_key` (deterministic key `<repo_ref>:<category>:<normalized-slug>` for idempotent retry and deduplication)
-      - `relationships[]` (optional array of `{ target_key_or_decision_id, kind: "depends-on"|"supersedes"|"conflicts", evidence_detail }` — include only when backed by direct evidence; never run $O(N^2)$ pairwise LLM inference)
+      - `relationships[]` (optional array of `{ target_key_or_decision_id, kind: "depends-on"|"supersedes"|"conflicts", evidence_detail }` — include only when backed by direct evidence; never run $O(N^2)$ pairwise LLM inference). Targets must be a `DEC-YYYY-NNNN` decision that exists in the organization, an existing discovery candidate for the same repository/project, or another candidate in the same submission; other targets are dropped and reported in `dropped_edges[]` / `warnings[]`.
 - Output:
-  - `imported_count`, `updated_count`, `Deduplicated_count`
-  - `candidates[]` (`suggestion_id`, `stable_import_key`, `title`, `candidate_status`, `review_status`: `"pending_review"`, `local_only_evidence`: bool)
+  - `job_id`, `inserted_count`, `updated_count`, `skipped_accepted_count`, `skipped_rejected_count`, `imported_count`, `deduplicated_count`
+  - `candidates[]` (`suggestion_id`, `stable_import_key`, `title`, `candidate_status`, `confidence`, `action`: `inserted|updated|skipped_accepted|skipped_rejected`, `status`: `pending_review|accepted|rejected`)
+  - `dropped_edges[]` (optional; `from`, `to`, `kind`, `reason`: `unknown_endpoint|self_reference`, `unknown_endpoints[]`) and `warnings[]` (optional, human-readable)
   - `review_url` (`https://app.aidecisionops.com/decisions/discover?project=<project_id>`)
 - Notes:
   - **Human review gate before calling**: The coding agent must present the discovered candidates table to the user and obtain explicit selection before calling `do-submit-discovery-candidates`.
