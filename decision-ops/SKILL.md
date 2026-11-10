@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: "Requires repository-local files and network access to the Decision Ops MCP service at https://api.aidecisionops.com/mcp. MCP authentication requires interactive browser OAuth (authorization code + PKCE) — there is no API key or token-based alternative for IDE users. The MCP server must be manually enabled in the IDE settings before first use."
 metadata:
   maturity: "stable"
-  prompt_version: "2.3.0"
+  prompt_version: "2.4.0"
 ---
 
 # Decision Ops
@@ -114,6 +114,10 @@ Use this workflow only when the task includes an explicit, non-trivial product, 
   - `related`: Concrete repository file paths, configs, or prior decision IDs inspected (never empty).
   - `validation_plan`: Quantifiable `metric`, `baseline`, `target`, and `by_date` (`YYYY-MM-DD`).
   - `planner_analysis` (recommended in `Quick`, **mandatory in `Comprehensive`**): Populate `evidence[]` (`kind`, `source`, `detail`), `impact`, `ambiguities[]`, `tags[]`, `discoveredBy`, and `confidence`.
+- For repo-scoped drafts, pass the manifest's `repo_id` when present or its `repo_ref` otherwise.
+- Before drafting, check `do-search-decisions` with `needs_review: true` and no search terms. Surface stale proposals or passed validation dates that affect the task. Page through the results when auditing the project.
+- Include relevant paths or links among the search terms and compare overlapping records with the new decision. If it replaces an earlier record, add its ID to `supersedes`. If it only changes part of the earlier decision, link it in `related` and explain what changed.
+- When an authorized commit implements a decision, confirm the relevant decision ID if it is unclear and add a `Decision: DEC-YYYY-NNNN` trailer for each ID. After pushing, use `do-get-decision` to check which commits linked. Use `do-update-decision-implementation` to mark completed work Built and record Verified or Failed when you have evidence for the decision’s metric. Include the evidence reference in the handoff.
 - Create the draft with `decision-ops:do-create-decision-draft` and validate it with `decision-ops:do-validate-decision`.
 
 5. Decide between `Proposed` (Needs Approval) vs `Accepted` (Decision Taken).

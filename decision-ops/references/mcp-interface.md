@@ -41,14 +41,18 @@ On first tool invocation, the IDE receives a `401` auth challenge with a `WWW-Au
 `do-search-decisions`
 - Input:
   - `org_id`, `project_id`
-  - `terms` (array)
-  - `mode` (`quick|comprehensive|custom`)
-  - `limit` (default `3` for quick, `5` for comprehensive)
+  - `terms` (optional array of keywords, paths, or links; omit to browse)
+  - `mode` (`quick|comprehensive|custom`; omit for default browsing or quick keyword search)
+  - `limit` (default `25` for browsing, `3` for quick, `5` for comprehensive)
+  - `status` (optional workflow status) and `offset` (optional next-page offset)
+  - `needs_review: true` filters to proposals older than 14 days, accepted decisions whose ISO validation date has passed, and decisions whose recorded replacement conflicts with their status.
   - `include_body` (default `false` for quick, `true` for comprehensive)
   - `custom` (object; optional, used when `mode=custom`)
 - Output:
   - `items[]` with `id`, `title`, `status`, `date`, `score`, `snippet`, `superseded_by`, `related[]`, `body` (optional, present when `include_body=true`)
-  - `candidate_supersedes[]`
+  - `next_offset` (pass as `offset` with the same filters; null on the last page)
+  - `candidate_supersedes[]` (matching accepted decisions)
+  - `items[].review_flags` (`stale_proposal`, `validation_date_passed`, or `supersession_pending`)
   - `applied_parameters` (`mode`, `limit`, `include_body`, `custom`)
 
 `do-create-decision-draft`
@@ -57,7 +61,7 @@ On first tool invocation, the IDE receives a `401` auth challenge with a `WWW-Au
   - `title`, `context`, `decision`
   - `type` (`technical|product|business|governance`, default `technical`)
   - `scope_level` (`org|project|repo`, default `project`)
-  - `repo_id` (optional; used for `scope_level=repo`, especially in multi-repo projects)
+  - `repo_id` or `repo_ref` (optional; for repo scope, pass the manifest value, preferring `repo_id`)
   - `create_project_if_missing` (bool or `"true"|"false"`, optional) — creates the target project on demand if `project_id` does not yet exist
   - `project_name` (string, optional) — display name when auto-creating the project
   - `options`, `consequences`, `related` (arrays)
@@ -69,8 +73,14 @@ On first tool invocation, the IDE receives a `401` auth challenge with a `WWW-Au
 - Notes:
   - **In-agent decision analysis required**: The coding agent must perform the complete analysis of context, options/alternatives (with Pros & Cons), chosen decision & rationale, consequences/tradeoffs, and validation plan inside the agent before calling `do-create-decision-draft`.
   - Project-scoped drafts can be created even when the project has no linked repositories.
-  - Only `scope_level=repo` requires linked repository resolution. Multi-repo projects must provide `repo_id` explicitly for repo-scoped drafts.
+  - Only `scope_level=repo` requires linked repository resolution. Multi-repo projects require either `repo_id` or `repo_ref` for repo-scoped drafts.
   - **Mandatory response summary**: After creating and validating a draft (or publishing it), the coding agent must output the full structured description of what was logged in its response to the user (Decision ID, Status, Project/Scope, Title, Domain/Impact, Context & Problem Statement, Chosen Decision & Rationale, Alternatives Considered, Consequences/Risks/Tradeoffs, Validation Plan, and Dashboard Link `https://app.aidecisionops.com/decisions?id=<decision_id>`).
+
+`do-update-decision-implementation`
+- Requires `mcp:write`.
+- Pass `org_id`, `project_id`, `decision_id`, and `state` (`Building|Built|Verified|Failed`).
+- For `Verified`, pass `evidence` with the plan's `metric`, the `observed` result, a `reference` to the measurement, and `outcome: "passed"`. A failed measurement can be recorded with `outcome: "failed"` when moving to `Failed`.
+- `Built` requires a linked commit. Check `do-get-decision` for current progress, commit links, and saved evidence.
 
 `do-validate-decision`
 - Input:
