@@ -1,11 +1,11 @@
 ---
 name: decision-ops
-description: "Captures, analyzes, discovers, and retrieves project decisions about product, technical, or business tradeoffs and architectural changes. Performs analysis in the coding agent and shows the complete logged decision. Triggers on prompts like 'should we...', 'which option...', 'choose between...', 'prioritize...', 'what should we cut', 'descope', 'migrate to...', 'how should we release this', 'staged rollout', 'change pricing/onboarding/KPIs', 'improve reliability/performance/security', 'address architectural gaps', 'fix query/performance bottlenecks', 'generalize architecture/policy', 'change vendors', 'select a partner', 'allocate budget', 'change revenue model', 'enter new market', 'change go-to-market', 'compliance requirement', or 'discover/audit existing decisions in this repo'. Skips typo fixes, doc spelling, pure reformatting, and version bumps with no architectural choice."
+description: "Captures, analyzes, discovers, and retrieves project decisions about product, technical, or business tradeoffs. Use when the user asks 'should we...', 'which option...', 'choose between...', 'prioritize...', 'descope', 'migrate to...', how to release or roll out, changes to pricing/onboarding/KPIs, reliability/performance/security or architecture changes, vendor, partner, budget or go-to-market choices, compliance requirements, or to discover/audit decisions in a repo. Also use mid-task, even when the request was a fix, review or deploy: before you offer the user competing approaches to pick from, or before you make a hard-to-reverse choice yourself (merging, retiring or moving a feature, changing what a check enforces, changing a data model or API contract). Skips typo fixes, formatting, version bumps and fixes with no design choice."
 license: Apache-2.0
 compatibility: "Requires repository-local files and network access to the Decision Ops MCP service at https://api.aidecisionops.com/mcp. MCP authentication requires interactive browser OAuth (authorization code + PKCE) — there is no API key or token-based alternative for IDE users. The MCP server must be manually enabled in the IDE settings before first use."
 metadata:
   maturity: "stable"
-  prompt_version: "2.4.1"
+  prompt_version: "2.5.0"
 ---
 
 # Decision Ops
@@ -209,6 +209,13 @@ When the user asks to discover, extract, or audit existing architectural, produc
    - Render a complete summary of the submitted discovery candidate drafts and their DecisionOps review link in your response.
 
 ## Decision Triggers
+
+### Mid-task decisions (agent-initiated)
+
+Decisions often surface while you are doing other work: the user asked for a bug fix, a review, or a deploy, and partway through you find two or more reasonable ways forward. The user's prompt will not contain "should we...", so check yourself:
+- **Before you present options for the user to pick from** (in a question/options UI or as a list in chat), run this workflow first. The comparison you were about to show becomes the decision's options.
+- **Before you choose a hard-to-reverse direction on your own**: merging, retiring, renaming or moving a feature; changing what a check or policy enforces; changing a data model, migration, or API contract; deleting stored data.
+- If the user then picks an option, follow step 0 and publish the existing `Proposed` record instead of drafting a new one.
 
 Record a decision when at least one of these is true:
 - Introduce, remove, or significantly upgrade a dependency, platform, or provider.

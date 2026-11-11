@@ -61,6 +61,26 @@
       "id": "trigger-012",
       "prompt": "Audit our repo's ADRs, git history, and configs to find past technical decisions, including any choices that were later reverted or superseded.",
       "why": "Multi-source repository decision discovery with current, superseded, and reverted classification."
+    },
+    {
+      "id": "trigger-013",
+      "prompt": "Look into the org review rules. They're saved but I don't think anything checks them.",
+      "why": "Investigation that ends in a choice between merging, enforcing, or removing a feature and changes what PR checks enforce; the agent frames the options mid-task."
+    },
+    {
+      "id": "trigger-014",
+      "prompt": "Fix the confusing enforcement settings; maybe Mode and Scope belong in PR Gatekeeper instead of Rules.",
+      "why": "Moving a feature between surfaces changes product structure; recordable even though the request reads like a UI fix."
+    },
+    {
+      "id": "trigger-015",
+      "prompt": "Clean up the rules tables. You can delete the old one once its data is moved.",
+      "why": "Data-model change with a destructive migration and stored data loss; hard to reverse."
+    },
+    {
+      "id": "trigger-016",
+      "prompt": "Merge and deploy this, then address the follow-ups from the review.",
+      "why": "Follow-ups can include choices such as enforcing vs retiring a setting; the agent must record when it is about to present competing approaches."
     }
   ],
   "negative": [
@@ -113,6 +133,16 @@
       "id": "skip-010",
       "prompt": "Sort these imports and remove unused ones.",
       "why": "Mechanical code hygiene."
+    },
+    {
+      "id": "skip-011",
+      "prompt": "Merge PR 17 and deploy it.",
+      "why": "Routine merge and deploy with no new design choice."
+    },
+    {
+      "id": "skip-012",
+      "prompt": "Delete the merged branches and stale worktrees.",
+      "why": "Housekeeping with no product or architecture tradeoff."
     }
   ]
 }
